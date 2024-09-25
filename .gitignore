@@ -1,0 +1,4 @@
+project/server
+project/client
+project/*.out
+results
