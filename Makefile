@@ -8,7 +8,7 @@ run:
 	docker run --rm \
 		-v ./project:/autograder/submission \
 		-v ./results:/autograder/results \
-		$(IMAGE) \
+		eado0/$(IMAGE) \
 		/autograder/run_autograder && cat results/results.json
 
 # In case you want to run the autograder manually, use interactive
