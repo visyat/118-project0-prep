@@ -8,7 +8,6 @@
 // server takes port number argument from stdin ...
 int main(int argc, char *argv[]) {
    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-                  // use IPv4  use UDP
 
    // make socket non-blocking ...
    int flags_socket = fcntl(sockfd, F_GETFL);
@@ -18,13 +17,11 @@ int main(int argc, char *argv[]) {
    // make standard input non-blocking ...
    int flags_stdin = fcntl(0, F_GETFL);
    flags_stdin |= O_NONBLOCK;
-   fcntl(0, F_SETFL, flags_stdin);
+   fcntl(STDIN_FILENO, F_SETFL, flags_stdin);
 
    struct sockaddr_in servaddr;
-   servaddr.sin_family = AF_INET; // use IPv4
-   servaddr.sin_addr.s_addr = INADDR_ANY; // accept all connections
-                           // same as inet_addr("0.0.0.0") 
-                                    // "Address string to network bytes"
+   servaddr.sin_family = AF_INET;
+   servaddr.sin_addr.s_addr = INADDR_ANY;
 
    // read port from standard input ...
    servaddr.sin_port = htons(atoi(argv[1])); // Big endian
@@ -53,20 +50,25 @@ int main(int argc, char *argv[]) {
                                  0, (struct sockaddr*) &clientaddr, 
                                  &clientsize);
       if (bytes_recvd < 0) return errno;
-
-      char* client_ip = inet_ntoa(clientaddr.sin_addr);
-                     // "Network bytes to address string"
+      // check if client is connected ...
+      if (bytes_recvd = 0) continue;
+      
+      // if data has been recieved (client connected) ...
+      char* client_ip = inet_ntoa(clientaddr.sin_addr); // "Network bytes to address string"
       int client_port = ntohs(clientaddr.sin_port); // Little endian
+      // write to stdout ...
       write(1, client_buf, bytes_recvd);
 
-      /* 7. Send data back to client */
-      char server_buf[] = "Hello world!";
+      // read from stdin ...
+      char server_buf[BUF_SIZE];
+      read(STDIN_FILENO, server_buf, BUF_SIZE);
+      // if data available from stdn, send to client ...
       int did_send = sendto(sockfd, server_buf, strlen(server_buf), 
                         // socket  send data   how much to send
                            0, (struct sockaddr*) &clientaddr, 
                         // flags   where to send
                            sizeof(clientaddr));
-      if (did_send < 0) return errno;  
+      if (did_send < 0) return errno; 
    }
  
    close(sockfd);
