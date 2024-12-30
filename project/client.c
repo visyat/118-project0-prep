@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 
+// client takes port number and hostname args ...
 int main(int argc, char *argv[]) {
    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
                   // use IPv4  use UDP
@@ -19,12 +20,10 @@ int main(int argc, char *argv[]) {
    flags_stdin |= O_NONBLOCK;
    fcntl(STDIN_FILENO, F_SETFL, flags_stdin);
 
-   /* 2. Construct server address */
    struct sockaddr_in serveraddr;
    serveraddr.sin_family = AF_INET; // use IPv4
    serveraddr.sin_addr.s_addr = INADDR_ANY;
    
-   // Set sending port
    int SEND_PORT = atoi(argv[2]);
    serveraddr.sin_port = htons(SEND_PORT); // Big endian
 

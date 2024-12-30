@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 
+// server takes port number argument ...
 int main(int argc, char *argv[]) {
    // set up socket ...
    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -79,7 +80,7 @@ int main(int argc, char *argv[]) {
          if (errno != EAGAIN && errno != EWOULDBLOCK) return errno;
       }
    }
-   
+  
    close(sockfd);
    return 0;
 }
