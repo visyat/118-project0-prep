@@ -4,4 +4,5 @@ project/*.out
 *.zip
 project/project
 results
-.vscode/
+.vscode
+test.sh

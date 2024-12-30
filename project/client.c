@@ -7,11 +7,9 @@
 #include <stdlib.h>
 
 // client takes port number and hostname args ...
-// hostname = argv[1], port = argv[2]
 int main(int argc, char *argv[]) {
    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
                   // use IPv4  use UDP
-
    // make socket non-blocking ...
    int flags_socket = fcntl(sockfd, F_GETFL);
    flags_socket |= O_NONBLOCK;
@@ -26,44 +24,38 @@ int main(int argc, char *argv[]) {
    serveraddr.sin_family = AF_INET; // use IPv4
    serveraddr.sin_addr.s_addr = INADDR_ANY;
    
-   // set sending port ...
-   if (strcmp(argv[1], "localhost") == 0) {
-        serveraddr.sin_addr.s_addr = inet_addr("127.0.0.1");
-    } else {
-        serveraddr.sin_addr.s_addr = inet_addr(argv[1]);
-    }
    int SEND_PORT = atoi(argv[2]);
    serveraddr.sin_port = htons(SEND_PORT); // Big endian
 
    int BUF_SIZE = 1024;
    char server_buf[BUF_SIZE];
-   socklen_t serversize = sizeof(socklen_t); // Temp buffer for recvfrom API
-
    char client_buf[BUF_SIZE];
 
+   socklen_t serversize = sizeof(serveraddr); // Temp buffer for recvfrom API
+
    for (;;) {
-      // listen to response from server ...
       int bytes_recvd = recvfrom(sockfd, server_buf, BUF_SIZE, 
                               // socket  store data  how much
                                  0, (struct sockaddr*) &serveraddr, 
                                  &serversize);
       if (bytes_recvd <= 0) {
-         if (errno != EAGAIN && errno != EWOULDBLOCK) {
-            return errno;
-         }
+         if (errno != EAGAIN && errno != EWOULDBLOCK) return errno;
       } else {
          write(1, server_buf, bytes_recvd);
       }
 
-      // send messages from stdin ...
       memset(client_buf, 0, BUF_SIZE);
-      ssize_t bytes_read = read(STDIN_FILENO, client_buf, BUF_SIZE);
-      int did_send = sendto(sockfd, client_buf, bytes_read, 
-                        // socket  send data   how much to send
-                           0, (struct sockaddr*) &serveraddr, 
-                        // flags   where to send
-                           sizeof(serveraddr));
-      if (did_send < 0) return errno;
+      ssize_t read_bytes = read(STDIN_FILENO, client_buf, BUF_SIZE);
+      if (read_bytes > 0) {
+         int did_send = sendto(sockfd, client_buf, read_bytes, 
+                           // socket  send data   how much to send
+                              0, (struct sockaddr*) &serveraddr, 
+                           // flags   where to send
+                              sizeof(serveraddr));
+         if (did_send < 0) {
+            if (errno != EAGAIN && errno != EWOULDBLOCK) return errno;
+         }
+      }
    }
 
    /* 6. You're done! Terminate the connection */     
