@@ -39,6 +39,8 @@ int main(int argc, char *argv[]) {
    char server_buf[BUF_SIZE];
    socklen_t serversize = sizeof(socklen_t); // Temp buffer for recvfrom API
 
+   char client_buf[BUF_SIZE];
+
    for (;;) {
       // listen to response from server ...
       int bytes_recvd = recvfrom(sockfd, server_buf, BUF_SIZE, 
@@ -46,13 +48,15 @@ int main(int argc, char *argv[]) {
                                  0, (struct sockaddr*) &serveraddr, 
                                  &serversize);
       if (bytes_recvd <= 0) {
-         if (errno != EAGAIN && errno != EWOULDBLOCK) return errno;
+         if (errno != EAGAIN && errno != EWOULDBLOCK) {
+            return errno;
+         }
+      } else {
+         write(1, server_buf, bytes_recvd);
       }
-      // Print out data
-      write(1, server_buf, bytes_recvd);
 
       // send messages from stdin ...
-      char client_buf[BUF_SIZE];
+      memset(client_buf, 0, BUF_SIZE);
       ssize_t bytes_read = read(STDIN_FILENO, client_buf, BUF_SIZE);
       int did_send = sendto(sockfd, client_buf, bytes_read, 
                         // socket  send data   how much to send

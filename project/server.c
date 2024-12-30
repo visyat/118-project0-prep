@@ -36,6 +36,8 @@ int main(int argc, char *argv[]) {
    struct sockaddr_in clientaddr; // Same information, but about client
    socklen_t clientsize = sizeof(clientaddr);
 
+   char server_buf[BUF_SIZE];
+
    // infinite loop to create an ever-listening server ...
    for (;;) {
       int bytes_recvd = recvfrom(sockfd, client_buf, BUF_SIZE, 
@@ -58,7 +60,7 @@ int main(int argc, char *argv[]) {
       write(1, client_buf, bytes_recvd);
 
       // read from stdin ...
-      char server_buf[BUF_SIZE];
+      memset(server_buf, 0, BUF_SIZE);
       ssize_t bytes_read = read(STDIN_FILENO, server_buf, BUF_SIZE);
       // if data available from stdn, send to client ...
       int did_send = sendto(sockfd, server_buf, bytes_read, 
